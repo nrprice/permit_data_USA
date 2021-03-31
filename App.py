@@ -34,7 +34,7 @@ states_list = gun_data['state'].unique()
 metric_list = ['total_permits', 'permits_per_capita', 'handgun', 'long_gun']
 app.layout = html.Div([
                         html.Div([
-                                html.H1('Big Old Title'),
+                                html.H1('US Gun Permit Applications'),
                                 html.H4('Please Select State:'),
                                 dcc.Dropdown(id='state_choice',
                                              options=[{'label': x, 'value': x} for x in states_list],
