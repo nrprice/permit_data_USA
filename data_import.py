@@ -5,25 +5,25 @@ pd.set_option("display.max_rows", 400000)
 pd.set_option("display.width", 1000)
 
 # Inital Import
-gun_data = pd.read_csv('Assets/gun_clean.csv')
-election_data = pd.read_csv('Assets/presidents.csv')
-census = pd.read_csv('Assets/census_clean.csv')
+gun_data = pd.read_csv('Assets/input_nics_updated.csv')
+election_data = pd.read_csv('Assets/input_presidents.csv')
+census = pd.read_csv('Assets/input_census_clean.csv')
 
 
 # Census Data
 census.drop(columns=['Unnamed: 0', 'census', 'estimates_base'],  inplace=True)
 census.rename(columns={'location': 'state'}, inplace=True)
-
+print (census['state'].unique())
 # Census Data Melted
 census_melted = census.melt(id_vars='state', var_name='date', value_name='count')
-census_melted['date'] = census_melted['date'].apply(lambda x: pd.to_datetime(x))
+census_melted['date'] = pd.to_datetime(census_melted['date'])
 census_melted = census_melted[['date', 'state', 'count']]
 
 # Gun Data
-
-gun_data.drop(columns='Unnamed: 0', inplace=True)
-gun_data['month'] = gun_data['month'].apply(lambda x: pd.to_datetime(x))
 gun_data.rename(columns={'month': 'date'}, inplace=True)
+gun_data = gun_data[['date', 'state', 'permit', 'handgun', 'long_gun', 'multiple']]
+gun_data['date'] = pd.to_datetime(gun_data['date'])
+
 
 # Election Data
 election_data.columns = [x.lower().replace(' ', '_') for x in election_data.columns]
@@ -58,5 +58,5 @@ census_and_party_df = census_melted.merge(winning_party_df,
                                           how='outer')
 census_and_party_df.drop(columns=['state_code', 'votes_cast'], inplace=True)
 
-census_and_party_df.to_csv('Assets/census_and_party.csv')
-gun_data.to_csv('Assets/cleaned_gun_data.csv')
+census_and_party_df.to_csv('Assets/output_census_and_party.csv')
+gun_data.to_csv('Assets/output_cleaned_gun_data.csv')

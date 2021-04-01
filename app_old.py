@@ -5,7 +5,6 @@ import pandas as pd
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 import dash
-import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Output, Input
@@ -13,20 +12,13 @@ pd.set_option("display.max_columns", 50)
 pd.set_option("display.max_rows", 400000)
 pd.set_option("display.width", 1000)
 
-# Create app instance & server
-app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
-server = app.server
-
-# Read Data
 census_and_party = pd.read_csv('Assets/output_census_and_party.csv')
 gun_data = pd.read_csv('Assets/output_cleaned_gun_data.csv')
-
-# Organise Gun Data
 gun_data.drop(columns='Unnamed: 0', inplace=True)
+
 gun_data['date'] = pd.to_datetime(gun_data['date'])
 gun_data.set_index('date', inplace=True)
 
-# Organise census and party data
 census_and_party['date'] = pd.to_datetime(census_and_party['date'])
 census_and_party.set_index('date', inplace=True)
 
@@ -35,52 +27,28 @@ min_dates = [gun_data.index.min(), census_and_party.index.min()]
 min_dates.sort()
 min_date = min_dates[1]
 
+app = dash.Dash(__name__)
+server = app.server
+
 states_list = gun_data['state'].unique()
 metric_list = ['total_permits', 'permits_per_capita', 'handgun', 'long_gun']
-
-
-# Layout components
-title = html.Div([html.Br(),
-                  html.H1("Gun Permit Applications Over Time - By State"),
-                  html.Br()])
-side_box = html.Div([html.H6('Description'),
-                     html.Li("Each Election day is marked by the Dashed line"),
-                     html.Li('Line color is dependant on which party won the popular vote for an election cycle')],
-                     style={'padding': '1rem 1rem',
-                            "background-color": "#f8f9fa",
-                            'height': '100%',
-                            'margin': 'auto',
-                            'align-items': 'center',
-                            'justify-content': 'center'})
-
-controls = html.Div([html.H6('Please Select State:'),
+app.layout = html.Div([
+                        html.Div([
+                                html.H1('US Gun Permit Applications'),
+                                html.H4('Please Select State:'),
                                 dcc.Dropdown(id='state_choice',
                                              options=[{'label': x, 'value': x} for x in states_list],
                                              value=states_list[0],
-                                             style={'width':'50%', 'align':'center', 'color': 'black'}),
-                                html.Br(),
-                                html.H6('Please select metric:'),
+                                             style={"textAlign": 'center', 'margin':'auto', 'color': 'black', 'width':'50%'}),
+                                html.H4('Please select metric:'),
                                 dcc.RadioItems(id='metric_choice',
                                                options=[{'label': x.title().replace('_', " "), 'value': x} for x in metric_list],
-                                               style={'color': 'black'},
+                                               style={'textAlign': 'center', 'margin': 'auto', 'width': '90%', 'color': 'black'},
                                                value=metric_list[0],
-                                               inputStyle={"margin-right": "5px", 'margin-left': '12px'})])
-
-graph = dcc.Graph(id='graph',
-                          config={'displayModeBar': False},
-                          style={'width':'100vw', 'height': '75vh'})
-
-# Layout
-app.layout = html.Div([
-        dbc.Row(dbc.Col(title,
-                        style={'textAlign': 'center'})),
-        dbc.Row([
-                dbc.Col(side_box,
-                        width=5),
-                dbc.Col(controls)
-        ]),
-        dbc.Row(graph)
-])
+                                               inputStyle={"margin-right": "3px", 'margin-left': '8px'}),
+                                dcc.Graph(id='graph', style={'height': '75vh'})
+                        ])
+], style={'backgroundColor': 'white', 'color': 'black', 'fontFamily': 'Arial', 'height':'100vh', 'textAlign': 'center'})
 
 @app.callback(
     #Outputs
@@ -111,6 +79,7 @@ def interactive_graph(state_choice, metric_choice):
     # Plot Republican Data
     republican_data = joined[joined['party'] == 'REPUBLICAN']
     republican_data = empty_date_df.join(republican_data)
+    print (republican_data)
     figure.add_trace(go.Scatter(x=republican_data.index,
                      y=republican_data[metric_choice],
                      name='Republican',
@@ -145,4 +114,3 @@ def interactive_graph(state_choice, metric_choice):
 
 if __name__ == '__main__':
     app.run_server()
-
