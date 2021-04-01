@@ -134,15 +134,6 @@ def interactive_graph(state_choice, metric_choice):
 
     return figure
 
-    # print ('State Data')
-    # print (state_data)
-    # print ('******')
-    # print('State Guns')
-    # print (state_guns.head(3))
-    # print ('******')
-    # print('Joined')
-    # print (joined.head(3))
-
 if __name__ == '__main__':
     app.run_server()
 

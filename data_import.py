@@ -10,17 +10,17 @@ gun_data = pd.read_csv('Assets/input_nics_updated.csv')
 election_data = pd.read_csv('Assets/input_presidents.csv')
 census = pd.read_excel('Assets/input_census.xlsx', engine='openpyxl')
 
-states_list = ['Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California',
-       'Colorado', 'Connecticut', 'Delaware', 'District of Columbia',
-       'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana',
-       'Iowa', 'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland',
-       'Massachusetts', 'Michigan', 'Minnesota', 'Mississippi',
-       'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire',
-       'New Jersey', 'New Mexico', 'New York', 'North Carolina',
-       'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania',
-       'Rhode Island', 'South Carolina', 'South Dakota', 'Tennessee',
-       'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington',
-       'West Virginia', 'Wisconsin', 'Wyoming', 'Puerto Rico']
+
+# Election Data
+
+
+election_data.columns = [x.lower().replace(' ', '_') for x in election_data.columns]
+election_data.rename(columns={'year': 'date'}, inplace=True)
+election_data['state'] = election_data['state'].apply(lambda x: x.title())
+election_data = election_data[election_data['date'] >= 2000]
+parties_list = ['REPUBLICAN', "DEMOCRAT"]
+election_data = election_data[election_data['party'].isin(parties_list)].reset_index(drop=True)
+states_list = election_data['state'].unique()
 
 # Census Data
 new_headers = census.iloc[2]
@@ -42,14 +42,6 @@ census_melted = census_melted[['date', 'state', 'count']]
 gun_data.rename(columns={'month': 'date'}, inplace=True)
 gun_data = gun_data[['date', 'state', 'permit', 'handgun', 'long_gun', 'multiple']]
 gun_data['date'] = pd.to_datetime(gun_data['date'])
-
-# Election Data
-election_data.columns = [x.lower().replace(' ', '_') for x in election_data.columns]
-election_data.rename(columns={'year': 'date'}, inplace=True)
-election_data['state'] = election_data['state'].apply(lambda x: x.title())
-election_data = election_data[election_data['date'] >= 2000]
-parties_list = ['REPUBLICAN', "DEMOCRAT"]
-election_data = election_data[election_data['party'].isin(parties_list)].reset_index(drop=True)
 
 # Winning Party Data
 full_states_list = election_data['state'].unique()
@@ -73,6 +65,7 @@ census_and_party_df = census_melted.merge(winning_party_df,
                                           left_on=['date', 'state'],
                                           right_on=['date', 'state'],
                                           how='outer')
+
 census_and_party_df.drop(columns=['state_code', 'votes_cast'], inplace=True)
 
 census_and_party_df.to_csv('Assets/output_census_and_party.csv')
